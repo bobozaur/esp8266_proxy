@@ -8,7 +8,6 @@ void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t t
 bool isConnectReq(const char *data);
 void destClientConnect(AsyncClient *destClient, const char *data);
 
-/* Source client callbacks */
 void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t len)
 {
     const char *data = (const char *)d;
@@ -28,7 +27,7 @@ void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t l
 
         if (!destClient->connected())
         {
-            DEBUG_SERIAL.println("Proxy client not connected!");
+            DEBUG_SERIAL.println("No tunnel to destination!");
             return;
         }
 
@@ -68,10 +67,10 @@ void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t t
     DEBUG_SERIAL.printf("Dest client got ack for %d bytes\n", len);
 
     AsyncClient *sourceClient = (AsyncClient *)client;
+    // Ack data from source now, after the dest has sent us an ACK.
     sourceClient->ack(len);
 }
 
-/* Source client utils */
 bool isConnectReq(const char *data)
 {
     return data[0] == 'C' && data[1] == 'O' && data[2] == 'N' && data[3] == 'N' && data[4] == 'E' && data[5] == 'C' && data[6] == 'T';
@@ -119,8 +118,8 @@ void destClientConnect(AsyncClient *destClient, const char *data)
     }
 
     // We discard this request anyway
-    // so just overwrite it to NULL terminate
-    // the host string.
+    // so just overwrite the host end
+    // to NULL terminate the host string.
     *host_end = '\0';
 
     DEBUG_SERIAL.printf("Will create tunnel for: %s:%d\n", host_start, port);

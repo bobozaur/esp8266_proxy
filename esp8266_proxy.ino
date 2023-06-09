@@ -12,6 +12,7 @@ static void handleNewClient(void *arg, AsyncClient *sourceClient)
   {
     return;
   }
+  
   DEBUG_SERIAL.printf("New client has been connected to server, ip: %s\n", sourceClient->remoteIP().toString().c_str());
 
   AsyncClient *destClient = new AsyncClient();
@@ -47,7 +48,7 @@ void setup()
   DEBUG_SERIAL.print("IP Address: ");
   DEBUG_SERIAL.println(WiFi.localIP());
 
-  AsyncServer *server = new AsyncServer(TCP_PORT); // start listening on tcp
+  AsyncServer *server = new AsyncServer(TCP_PORT);
   server->setNoDelay(true);
   server->onClient(&handleNewClient, server);
   server->begin();
