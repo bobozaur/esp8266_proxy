@@ -5,7 +5,6 @@
 #include <ESPAsyncTCP.h>
 
 void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t time);
-bool isConnectReq(const char *data);
 void destClientConnect(AsyncClient *destClient, const char *data);
 
 void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t len)
@@ -16,7 +15,7 @@ void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t l
 
     AsyncClient *destClient = (AsyncClient *)client;
 
-    if (isConnectReq(data))
+    if (strncmp("CONNECT", data, 7) == 0)
     {
         DEBUG_SERIAL.println("'CONNECT' request received!");
         destClientConnect(destClient, data);
@@ -69,11 +68,6 @@ void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t t
     AsyncClient *sourceClient = (AsyncClient *)client;
     // Ack data from source now, after the dest has sent us an ACK.
     sourceClient->ack(len);
-}
-
-bool isConnectReq(const char *data)
-{
-    return data[0] == 'C' && data[1] == 'O' && data[2] == 'N' && data[3] == 'N' && data[4] == 'E' && data[5] == 'C' && data[6] == 'T';
 }
 
 void destClientConnect(AsyncClient *destClient, const char *data)
