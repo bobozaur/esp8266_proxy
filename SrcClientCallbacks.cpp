@@ -20,21 +20,19 @@ void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t l
         DEBUG_SERIAL.println("'CONNECT' request received!");
         destClientConnect(destClient, data);
     }
-    else
+    else if (destClient->connected())
     {
         DEBUG_SERIAL.println("Proxying request...");
-
-        if (!destClient->connected())
-        {
-            DEBUG_SERIAL.println("No tunnel to destination!");
-            return;
-        }
 
         sourceClient->ackLater();
         destClient->onAck(&handleDestAck, sourceClient);
 
         DEBUG_SERIAL.printf("Processing client request... Params: len=%d; space: %d\n", len, destClient->space());
         destClient->write(data, len, 1);
+    }
+    else
+    {
+        DEBUG_SERIAL.println("No tunnel to destination!");
     }
 }
 
