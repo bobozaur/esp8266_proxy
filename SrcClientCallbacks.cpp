@@ -53,12 +53,12 @@ void handleSourceDisconnect(void *client, AsyncClient *sourceClient)
 
 void handleSourceTimeOut(void *arg, AsyncClient *client, uint32_t time)
 {
-  DEBUG_SERIAL.printf("Source client ACK timeout ip: %s \n", client->remoteIP().toString().c_str());
+    DEBUG_SERIAL.printf("Source client ACK timeout ip: %s \n", client->remoteIP().toString().c_str());
 }
 
 void handleSourceError(void *arg, AsyncClient *client, int8_t error)
 {
-  DEBUG_SERIAL.printf("Connection error %s from source client %s \n", client->errorToString(error), client->remoteIP().toString().c_str());
+    DEBUG_SERIAL.printf("Connection error %s from source client %s \n", client->errorToString(error), client->remoteIP().toString().c_str());
 }
 
 void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t time)
@@ -73,7 +73,7 @@ void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t t
 void destClientConnect(AsyncClient *destClient, const char *data)
 {
     // Default port
-    uint16_t port = 443;
+    uint16_t port = DEFAULT_HOST_PORT;
 
     char *host_start = NULL;
     char *port_start = NULL;

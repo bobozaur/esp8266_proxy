@@ -12,7 +12,7 @@ static void handleNewClient(void *arg, AsyncClient *sourceClient)
   {
     return;
   }
-  
+
   DEBUG_SERIAL.printf("New client has been connected to server, ip: %s\n", sourceClient->remoteIP().toString().c_str());
 
   AsyncClient *destClient = new AsyncClient();
