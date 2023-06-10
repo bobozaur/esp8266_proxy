@@ -26,9 +26,6 @@ It works way better than I anticipated, and that's mostly due to the [lwIP](http
 # TCP settings
 The default TCP settings from the `esp8266 Arduino Core` get in the way of this working properly, essentially because the `TCP_WND` is greated than the `TCP_SND_BUF`. So the (actual) server will send more data than the proxy buffer can hold before it gets an `ACK` from its client, which is bad.
 
-Also, the default lwIP Variant has a packet size (`TCP_MSS`) of 536, which is conservative.
-
-- Consider using a different lwIP Variant, from `Tools -> lwIP Variant`. The additional features are not needed as far as I'm aware, so I just use `v2 Higher Bandwidth (no features)`. This increases `TCP_MSS` to 1460, the default Ethernet packet payload size.
 - Locate the `esp8266 Arduino core` installation.
 - Navigate to `hardware/esp8266com/esp8266/tools/sdk/lwip2/builder/glue-lwip/arduino`.
 - Modify the `TCP_WND` and `TCP_SND_BUF` macros. They are already defined in relation to `TCP_MSS`, but `TCP_WND` might be bigger. We actually could use the opposite, having more room in the buffer to hold data while waiting for an `ACK` without the server flooding us with data. The settings that work best for me are: 
@@ -41,3 +38,5 @@ Also, the default lwIP Variant has a packet size (`TCP_MSS`) of 536, which is co
 - Profit???
 
 The instructions for modifying these macros are inspired from [this](https://arduino.stackexchange.com/a/90004/90867) StackExchange answer.
+
+Also, the default lwIP Variant has a packet size (`TCP_MSS`) of 536, which is conservative. Consider using a different lwIP Variant, from `Tools -> lwIP Variant`. The additional features are not needed as far as I'm aware, so I just use `v2 Higher Bandwidth (no features)`. This increases `TCP_MSS` to 1460, the default Ethernet packet payload size.

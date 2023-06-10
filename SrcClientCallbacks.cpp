@@ -1,10 +1,10 @@
 #include "SrcClientCallbacks.h"
+#include "lwip/opt.h"
 #include "config.h"
 
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 
-void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t time);
 void destClientConnect(AsyncClient *destClient, const char *data);
 
 void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t len)
@@ -25,9 +25,22 @@ void handleSourceData(void *client, AsyncClient *sourceClient, void *d, size_t l
         DEBUG_SERIAL.println("Proxying request...");
 
         sourceClient->ackLater();
-        destClient->onAck(&handleDestAck, sourceClient);
+        destClient->onAck([](void *client, AsyncClient *destClient, size_t len, uint32_t time)
+                          {
+              DEBUG_SERIAL.printf("Dest client got ack for %d bytes\n", len);
 
-        DEBUG_SERIAL.printf("Processing client request... Params: len=%d; space: %d\n", len, destClient->space());
+    AsyncClient *sourceClient = (AsyncClient *)client;
+    // Ack data from source now, after the dest has sent us an ACK.
+    sourceClient->ack(len);
+    
+    // If there's any data in the buffer
+    if(destClient->space() < TCP_SND_BUF)
+      destClient->send(); },
+                          sourceClient);
+
+        DEBUG_SERIAL.printf("Processing source request... Params: len=%d; space: %d\n", len, destClient->space());
+        // Copy the data into the other client
+        // as this packet will be freed after this call
         destClient->write(data, len, 1);
     }
     else
@@ -49,23 +62,14 @@ void handleSourceDisconnect(void *client, AsyncClient *sourceClient)
     DEBUG_SERIAL.printf("Client %s disconnected \n", sourceClient->remoteIP().toString().c_str());
 }
 
-void handleSourceTimeOut(void *arg, AsyncClient *client, uint32_t time)
+void handleSourceTimeOut(void *arg, AsyncClient *sourceClient, uint32_t time)
 {
-    DEBUG_SERIAL.printf("Source client ACK timeout ip: %s \n", client->remoteIP().toString().c_str());
+    DEBUG_SERIAL.printf("Source client ACK timeout ip: %s \n", sourceClient->remoteIP().toString().c_str());
 }
 
-void handleSourceError(void *arg, AsyncClient *client, int8_t error)
+void handleSourceError(void *arg, AsyncClient *sourceClient, int8_t error)
 {
-    DEBUG_SERIAL.printf("Connection error %s from source client %s \n", client->errorToString(error), client->remoteIP().toString().c_str());
-}
-
-void handleDestAck(void *client, AsyncClient *destClient, size_t len, uint32_t time)
-{
-    DEBUG_SERIAL.printf("Dest client got ack for %d bytes\n", len);
-
-    AsyncClient *sourceClient = (AsyncClient *)client;
-    // Ack data from source now, after the dest has sent us an ACK.
-    sourceClient->ack(len);
+    DEBUG_SERIAL.printf("Connection error %s from source client %s \n", sourceClient->errorToString(error), sourceClient->remoteIP().toString().c_str());
 }
 
 void destClientConnect(AsyncClient *destClient, const char *data)
